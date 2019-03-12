@@ -12,8 +12,8 @@ import torch.optim as optim
 
 #-- hyperparameters --#
 WINDOW_SIZE = 2
-EMBEDDING_DIM = 100
-N_NEGS = 10
+EMBEDDING_DIM = 10
+# N_NEGS = 10
 N_EPOCHS = 30
 LEARNING_RATE = 0.01
 
@@ -71,20 +71,31 @@ def get_onehot(word):
         corpus_tokens.append(sentence_tokens)
     
     """
-    onehot = torch.zeros(len(vocab),dtype=torch.long)
+    onehot = torch.zeros(len(vocab), dtype=torch.long)
     onehot[word2idx(word)] = 1
     return onehot
 
 def get_word_pairs(sent_tok, window_size): # window_size: | pos(farthest context word) - pos(center) | 
-    for center_pos in range(len(sent_tok)):
-        center = sent_tok[center_pos] * (window_size * 2)
-        context = []            
-        context.append(sent_tok[context_pos] 
-                for context_pos in range(center_pos - window_size, center_pos + window_size+1)
-                if center_pos - window_size>=0 and center_pos + window_size+1 <= len(sent_tok))
-
-    word_pairs = [[c,t] for c,t in zip(center, context)]
-    return word_pairs
+    word_pairs = []
+    for sentence in sent_tok:
+        for center_pos in range(len(sentence)):
+            center = [sentence[center_pos]] * (window_size *2)
+            context = []    
+            for context_pos in range(center_pos - window_size, center_pos + window_size+1):        
+                if context_pos>=0 and context_pos <= len(sentence)-1 and context_pos != center_pos:
+                    context.append(sentence[context_pos])        
+                else: 
+                    continue
+        ''' For check            
+            print(center[0], context)
+        print(sentence)                
+        exit(0)                
+        '''        
+                
+    
+    word_pairs = [[c,t] for (c,t) in zip(center, context)]
+    print(word_pairs)
+    exit(0)
 
 if __name__=='__main__':
 
@@ -93,8 +104,9 @@ if __name__=='__main__':
 
     w2d = {w: idx for (idx, w) in enumerate(vocab)}
     i2w = {idx:w for (idx, w) in enumerate(vocab)}
-    TRAINSET = get_word_pairs(sent_tokens, WINDOW_SIZE)
+    get_word_pairs(sent_tokens, WINDOW_SIZE)
 
+    print(TRAINSET)
     #-- initialization --#
     model = SGNS(EMBEDDING_DIM, len(vocab))
     loss_function = nn.NLLLoss()
