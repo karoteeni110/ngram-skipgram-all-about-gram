@@ -73,7 +73,17 @@ if __name__=='__main__':
         vocab += sentence.split(' ') 
     vocab = set(vocab)
     indices = {w: idx for (idx, w) in enumerate(vocab)}
-    vocab_size = len(vocab)
+    
+    def get_onehot(word):
+        onehot = torch.zeros(len(vocab),dtype=torch.long)
+        onehot[indices[word]] = 1
+        return onehot
+
+    for word in vocab:
+        print(get_onehot(word))
+
+    exit(0)
+
 
     #-- initialization --#
     model = SGNS(EMBEDDING_DIM, vocab_size)
