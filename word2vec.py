@@ -2,7 +2,7 @@
 """
     LEAVE MESSAGE HERE
 """
-from nltk.tokenize import RegexpTokenizer
+from random import choice, random, shuffle
 
 import numpy as np
 import torch
@@ -24,6 +24,7 @@ toy_corpus = [
     'You can also choose your own topic and suggest a project or choose and existing topic and suggest your own project based on the topic'
 ]
 
+CORP = toy_corpus
 
 #-- model --#
 class SGNS(nn.Module): #Skipgram (without negative sampling for now)
@@ -42,18 +43,27 @@ class SGNS(nn.Module): #Skipgram (without negative sampling for now)
 
 
 #-- auxilary functions --#
-def get_context_words(window_size, input_word):
-    context_word_idx = None
-    return context_word_idx
+def seq_and_vocab(corpus): 
+    sent_tokens=[]
+    corpus_tokens=[]
+    for sentence in corpus:
+        lst = sentence.split()
+        sent_tokens.append(lst)
+        corpus_tokens += lst 
+    vocab = set(corpus_tokens)
+    return sent_tokens, vocab
 
 def word2idx(word):
-    w2d = {w: idx for (idx, w) in enumerate(vocab)}
-    idx = indices[word]
+    idx = w2d[word]
     return idx
+
+def idx2word(idx):
+    word = i2w[idx]
+    return word
 
 def get_onehot(word):
     """
-    # A list of tokenized corpus
+    # Tokenization
     corpus_tokens = []
     tokenizer = RegexpTokenizer(r'\w+')
     for sentence in corpus:
@@ -62,21 +72,28 @@ def get_onehot(word):
     
     """
     onehot = torch.zeros(len(vocab),dtype=torch.long)
-    onehot[indices[word]] = 1
+    onehot[word2idx(word)] = 1
     return onehot
 
-def seq_and_vocab(corpus): 
-    seqs=[]
-    for sentence in corpus:
-        seqs += sentence.split(' ') 
-    vocab = set(seqs)
-    return seqs,vocab
+def get_word_pairs(sent_tok, window_size): # window_size: | pos(farthest context word) - pos(center) | 
+    for center_pos in range(len(sent_tok)):
+        center = sent_tok[center_pos] * (window_size * 2)
+        context = []            
+        context.append(sent_tok[context_pos] 
+                for context_pos in range(center_pos - window_size, center_pos + window_size+1)
+                if center_pos - window_size>=0 and center_pos + window_size+1 <= len(sent_tok))
+
+    word_pairs = [[c,t] for c,t in zip(center, context)]
+    return word_pairs
 
 if __name__=='__main__':
 
-    # Get one-hot
-    seqs, vocab = seq_and_vocab(toy_corpus)
-    
+    # Get vocab, word2inx etc. for next steps
+    sent_tokens, vocab = seq_and_vocab(CORP)
+
+    w2d = {w: idx for (idx, w) in enumerate(vocab)}
+    i2w = {idx:w for (idx, w) in enumerate(vocab)}
+    TRAINSET = get_word_pairs(sent_tokens, WINDOW_SIZE)
 
     #-- initialization --#
     model = SGNS(EMBEDDING_DIM, len(vocab))
@@ -86,20 +103,18 @@ if __name__=='__main__':
     #-- training --#
     for epoch in range(N_EPOCHS):
         total_loss = 0
-
-        for sentence in corpus:
-            context_lst = []
-            center_w = None
-            for context_w in context_lst: 
-                log_probs = model(get_onehot(center_w))
-                loss = loss_function(log_probs, word2idx(context_w))
-        
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-                total_loss += loss.item()
+  
+        shuffle(TRAINSET)
+        for center,context in TRAINSET:
+            print(center,context)
+            log_probs = model(get_onehot(center))
+            loss = loss_function(log_probs, word2idx(context))
+    
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            total_loss += loss.item()
 
     #-- testing --#
     with torch.no_grad():
-        for sentence in corpus: # maybe use a function 
-            word_vec = None
+        print(total_loss)
