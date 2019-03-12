@@ -18,10 +18,10 @@ N_EPOCHS = 30
 LEARNING_RATE = 0.01
 
 toy_corpus = [
-    'You may work either independently or in a group.',
-    'We have five suggestions for topics and practical projects.',
-    'We will provide datasets for each practical project.',
-    'You can also choose your own topic and suggest a project or choose and existing topic and suggest your own project based on the topic.'
+    'You may work either independently or in a group',
+    'We have five suggestions for topics and practical projects',
+    'We will provide datasets for each practical project',
+    'You can also choose your own topic and suggest a project or choose and existing topic and suggest your own project based on the topic'
 ]
 
 
@@ -47,7 +47,7 @@ def get_context_words(window_size, input_word):
     return context_word_idx
 
 def word2idx(word):
-    indices = {w: idx for (idx, w) in enumerate(vocab)}
+    
     idx = indices[word]
     return idx
 
@@ -67,10 +67,15 @@ def get_one_hot(word):
 
 if __name__=='__main__':
 
-    #-- initialization --#
-    one_hots = get_one_hots(toy_corpus)
+    # Get one-hot 
+    vocab=[]
+    for sentence in toy_corpus:
+        vocab += sentence.split(' ') 
+    vocab = set(vocab)
+    indices = {w: idx for (idx, w) in enumerate(vocab)}
     vocab_size = len(vocab)
 
+    #-- initialization --#
     model = SGNS(EMBEDDING_DIM, vocab_size)
     loss_function = nn.NLLLoss()
     optimizer = optim.SGD(model.parameters(), lr = LEARNING_RATE)
