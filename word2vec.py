@@ -47,11 +47,11 @@ def get_context_words(window_size, input_word):
     return context_word_idx
 
 def word2idx(word):
-    
+    w2d = {w: idx for (idx, w) in enumerate(vocab)}
     idx = indices[word]
     return idx
 
-def get_one_hot(word):
+def get_onehot(word):
     """
     # A list of tokenized corpus
     corpus_tokens = []
@@ -61,32 +61,25 @@ def get_one_hot(word):
         corpus_tokens.append(sentence_tokens)
     
     """
-    
-    one_hot = None
-    return one_hot
+    onehot = torch.zeros(len(vocab),dtype=torch.long)
+    onehot[indices[word]] = 1
+    return onehot
+
+def seq_and_vocab(corpus): 
+    seqs=[]
+    for sentence in corpus:
+        seqs += sentence.split(' ') 
+    vocab = set(seqs)
+    return seqs,vocab
 
 if __name__=='__main__':
 
-    # Get one-hot 
-    vocab=[]
-    for sentence in toy_corpus:
-        vocab += sentence.split(' ') 
-    vocab = set(vocab)
-    indices = {w: idx for (idx, w) in enumerate(vocab)}
+    # Get one-hot
+    seqs, vocab = seq_and_vocab(toy_corpus)
     
-    def get_onehot(word):
-        onehot = torch.zeros(len(vocab),dtype=torch.long)
-        onehot[indices[word]] = 1
-        return onehot
-
-    for word in vocab:
-        print(get_onehot(word))
-
-    exit(0)
-
 
     #-- initialization --#
-    model = SGNS(EMBEDDING_DIM, vocab_size)
+    model = SGNS(EMBEDDING_DIM, len(vocab))
     loss_function = nn.NLLLoss()
     optimizer = optim.SGD(model.parameters(), lr = LEARNING_RATE)
 
@@ -98,7 +91,7 @@ if __name__=='__main__':
             context_lst = []
             center_w = None
             for context_w in context_lst: 
-                log_probs = model(get_one_hot(center_w))
+                log_probs = model(get_onehot(center_w))
                 loss = loss_function(log_probs, word2idx(context_w))
         
                 optimizer.zero_grad()
