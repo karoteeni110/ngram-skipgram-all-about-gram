@@ -102,21 +102,21 @@ if __name__=='__main__':
 
     w2d = {w: idx for (idx, w) in enumerate(vocab)}
     i2w = {idx:w for (idx, w) in enumerate(vocab)}
-    get_word_pairs(sent_tokens, WINDOW_SIZE)
+    trainset=get_word_pairs(sent_tokens, WINDOW_SIZE)
 
-    print(TRAINSET)
     #-- initialization --#
-    model = SGNS(EMBEDDING_DIM, len(vocab))
+    #model = SGNS(EMBEDDING_DIM, len(vocab))
     loss_function = nn.NLLLoss()
-    optimizer = optim.SGD(model.parameters(), lr = LEARNING_RATE)
+    #optimizer = optim.SGD(model.parameters(), lr = LEARNING_RATE)
 
     #-- training --#
     for epoch in range(N_EPOCHS):
         total_loss = 0
   
-        shuffle(TRAINSET)
-        for center,context in TRAINSET:
+        shuffle(trainset)
+        for center,context in trainset:
             print(center,context)
+            exit(0)
             log_probs = model(get_onehot(center))
             loss = loss_function(log_probs, word2idx(context))
     
