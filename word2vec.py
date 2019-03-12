@@ -86,16 +86,14 @@ def get_word_pairs(sent_tok, window_size): # window_size: | pos(farthest context
                     context.append(sentence[context_pos])        
                 else: 
                     continue
+            word_pairs += [[c,t] for (c,t) in zip(center, context)]
         ''' For check            
             print(center[0], context)
         print(sentence)                
-        exit(0)                
+        print(word_pairs)
+        exit(0)
         '''        
-                
-    
-    word_pairs = [[c,t] for (c,t) in zip(center, context)]
-    print(word_pairs)
-    exit(0)
+    return word_pairs    
 
 if __name__=='__main__':
 
