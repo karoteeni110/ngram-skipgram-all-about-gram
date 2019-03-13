@@ -96,13 +96,20 @@ def get_word_pairs(sent_tok, window_size): # window_size: | pos(farthest context
     return word_pairs    
 
 if __name__=='__main__':
+    # Exclude sparse words
+    # TBD
 
-    # Get vocab, word2inx etc. for next steps
+    # Get vocab, idx, word, trainset for next steps
     sent_tokens, vocab = seq_and_vocab(CORP)
-
     w2d = {w: idx for (idx, w) in enumerate(vocab)}
     i2w = {idx:w for (idx, w) in enumerate(vocab)}
     trainset=get_word_pairs(sent_tokens, WINDOW_SIZE)
+
+    # Build Unigram Distribution**0.75
+    # TBD
+    
+    # Negative Sampling
+    # TBD
 
     #-- initialization --#
     #model = SGNS(EMBEDDING_DIM, len(vocab))
