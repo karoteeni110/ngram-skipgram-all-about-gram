@@ -10,6 +10,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
+from collections import Counter
+
 #-- hyperparameters --#
 WINDOW_SIZE = 2
 EMBEDDING_DIM = 10
@@ -28,22 +30,25 @@ CORP = toy_corpus
 
 #-- model --#
 class SGNS(nn.Module): #Skipgram (without negative sampling for now)
-    def __int__(self, embedding_dim, vocab_size):
+    def __init__(self, embedding_dim, vocab_size):
         super(SGNS, self).__init__()
         self.embedding_dim = embedding_dim
-        self.vocab_size = vocab_size
+        self.vocab_size = vocab_size 
         
         self.embed = nn.Embedding(vocab_size, embedding_dim)
-        self.linear = nn.Linear(embedding_dim, vocab_size)
+        self.linear = nn.Linear(vocab_size * embedding_dim, vocab_size) # Is this input size correct?
 
     def forward(self, x):
-        embed_vec = self.embed(x)
-        log_probs = F.log_softmax(self.linear(embed_vec))
+        embed_vec = self.embed(x).view(1,-1) # [vocab_size, embedding_dim].view(1,-1); Why not [1, embedding_dim]?
+        log_probs = F.log_softmax(self.linear(embed_vec), dim=1)
         return log_probs
 
 
 #-- auxilary functions --#
 def seq_and_vocab(corpus): 
+    '''
+    sent_tokens: A list. Containing nested lists, where contains tokens in each sentence.
+    '''
     sent_tokens=[]
     corpus_tokens=[]
     for sentence in corpus:
@@ -55,7 +60,7 @@ def seq_and_vocab(corpus):
 
 def word2idx(word):
     idx = w2d[word]
-    return idx
+    return torch.tensor([idx], dtype = torch.long)
 
 def idx2word(idx):
     word = i2w[idx]
@@ -87,13 +92,18 @@ def get_word_pairs(sent_tok, window_size): # window_size: | pos(farthest context
                 else: 
                     continue
             word_pairs += [[c,t] for (c,t) in zip(center, context)]
-        ''' For check            
+        '''            
             print(center[0], context)
         print(sentence)                
         print(word_pairs)
         exit(0)
         '''        
     return word_pairs    
+
+def word_vec(word):
+    vec = None
+    return vec
+
 
 if __name__=='__main__':
     # Exclude sparse words
@@ -110,21 +120,29 @@ if __name__=='__main__':
     
     # Negative Sampling
     # TBD
-
+    
+    # Check: 
+    # get_onehot('also')
+    # exit(0)
+    
     #-- initialization --#
-    #model = SGNS(EMBEDDING_DIM, len(vocab))
+    model = SGNS(EMBEDDING_DIM, len(vocab))
     loss_function = nn.NLLLoss()
-    #optimizer = optim.SGD(model.parameters(), lr = LEARNING_RATE)
+    optimizer = optim.SGD(model.parameters(), lr = LEARNING_RATE)
 
     #-- training --#
     for epoch in range(N_EPOCHS):
-        total_loss = 0
-  
+        total_loss = 0  
         shuffle(trainset)
+
         for center,context in trainset:
-            print(center,context)
-            exit(0)
             log_probs = model(get_onehot(center))
+            
+            # print(center)
+            # print('input', get_onehot(center))
+            # print('logprob',log_probs, log_probs.shape)
+            # exit(0)
+            
             loss = loss_function(log_probs, word2idx(context))
     
             optimizer.zero_grad()
@@ -134,4 +152,4 @@ if __name__=='__main__':
 
     #-- testing --#
     with torch.no_grad():
-        print(total_loss)
+        print('Loss:', total_loss)
