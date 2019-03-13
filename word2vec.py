@@ -2,6 +2,7 @@
 """
     LEAVE MESSAGE HERE
 """
+import os
 from random import choice, random, shuffle
 
 import numpy as np
@@ -19,13 +20,10 @@ EMBEDDING_DIM = 10
 N_EPOCHS = 30
 LEARNING_RATE = 0.01
 
-toy_corpus = [
-    'You may work either independently or in a group',
-    'We have five suggestions for topics and practical projects',
-    'We will provide datasets for each practical project',
-    'You can also choose your own topic and suggest a project or choose and existing topic and suggest your own project based on the topic'
-]
-
+f = open('MeBo-123.2015_stamd.txt','r')
+text = f.read()
+print(text)
+exit(0)
 CORP = toy_corpus
 
 #-- model --#
