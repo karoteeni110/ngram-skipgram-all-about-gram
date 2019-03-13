@@ -101,8 +101,8 @@ def get_word_pairs(sent_tok, window_size): # window_size: | pos(farthest context
         '''        
     return word_pairs    
 
-def word_vec(word):
-    vec = None
+def embed_vec(word):
+    vec = embed_matrix[word2idx(word)]
     return vec
 
 
@@ -153,5 +153,6 @@ if __name__=='__main__':
 
     #-- After training --#
     with torch.no_grad():
+        embed_matrix = model.embed.weight.data.numpy()
         print('Loss:', total_loss)
-        print(model.embed.weight.data.numpy()[word2idx('We')])
+        print(embed_vec('We'))
