@@ -39,13 +39,11 @@ class SGNS(nn.Module): #Skipgram (without negative sampling for now)
         self.linear = nn.Linear(vocab_size * embedding_dim, vocab_size) # Is this input size correct?
 
     def forward(self, x):
-        embed_vec = self.embed(x).view(1,-1) # [vocab_size, embedding_dim].view(1,-1); NOT [1, embedding_dim]!
+        out = self.embed(x)
+        embed_vec = out.view(1,-1) # [vocab_size, embedding_dim].view(1,-1); NOT [1, embedding_dim]!
         log_probs = F.log_softmax(self.linear(embed_vec), dim=1)
         return log_probs
     
-    def get_vec(self, word):
-        vec = torch.mm(get_onehot(word).float().view(1,-1), self.embed(get_onehot(word)))
-        return (word, vec)
 
 #-- auxilary functions --#
 def seq_and_vocab(corpus): 
@@ -153,7 +151,7 @@ if __name__=='__main__':
             optimizer.step()
             total_loss += loss.item()
 
-    #-- testing --#
+    #-- After training --#
     with torch.no_grad():
         print('Loss:', total_loss)
-        print(model.get_vec('also'))
+        print(model.embed.weight.data.numpy()[word2idx('We')])
