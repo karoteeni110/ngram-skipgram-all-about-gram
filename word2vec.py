@@ -20,11 +20,15 @@ EMBEDDING_DIM = 10
 N_EPOCHS = 30
 LEARNING_RATE = 0.01
 
-f = open('MeBo-123.2015_stamd.txt','r')
-text = f.read()
-print(text)
-exit(0)
+toy_corpus = [
+    'You may work either independently or in a group',
+    'We have five suggestions for topics and practical projects',
+    'We will provide datasets for each practical project',
+    'You can also choose your own topic and suggest a project or choose and existing topic and suggest your own project based on the topic'
+]
+
 CORP = toy_corpus
+CORP
 
 #-- model --#
 class SGNS(nn.Module): #Skipgram (without negative sampling for now)
@@ -112,7 +116,7 @@ if __name__=='__main__':
     sent_tokens, vocab = seq_and_vocab(CORP)
     w2d = {w: idx for (idx, w) in enumerate(vocab)}
     i2w = {idx:w for (idx, w) in enumerate(vocab)}
-    trainset=get_word_pairs(sent_tokens, WINDOW_SIZE)
+    trainset = get_word_pairs(sent_tokens, WINDOW_SIZE)
 
     # Build Unigram Distribution**0.75
     # TBD
