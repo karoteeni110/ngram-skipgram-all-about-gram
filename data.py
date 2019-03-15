@@ -1,8 +1,22 @@
+# -*- coding: utf-8 -*-
 
-import nltk 
+def readfile(fpath):
+    ''' 
+    The txt files are processed. '+' are added between morphs.
+    '''
+    with open(fpath, 'r', encoding = "utf-8") as txtfile:
+        print('Reading data...')
+        txt = txtfile.readlines()
+        wordlist = []        
+        for line in txt:
+                wordlist.extend(line.strip('\n').strip().split(' ')) 
+                        
+        # morphs = set(word.split('+') for para in txt for word in para)
+        
+        # return txt
+        return wordlist
 
-def readfile(fname):
-    with open(fname, 'r') as txtfile:
-        txt = txtfile.read()
-        return txt.split()
+if __name__ == "__main__":
+    
+    readfile('MeBo-123.2015_stamd.txt')
 
