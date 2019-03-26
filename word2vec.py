@@ -25,8 +25,8 @@ toy_corpus = [
     'We will provide datasets for each practical project',
     'You can also choose your own topic and suggest a project or choose and existing topic and suggest your own project based on the topic'
 ]
-
-CORP = open('newtxt.txt', 'r').readlines()[:10]
+# CORP = toy_corpus
+CORP = open('newtxt.txt', 'r').readlines()
 
 #-- model --#
 class SGNS(nn.Module): #Skipgram (without negative sampling for now)
@@ -110,6 +110,7 @@ if __name__=='__main__':
     w2d = {w: idx for (idx, w) in enumerate(vocab)}
     i2w = {idx:w for (idx, w) in enumerate(vocab)}
     print('Reading...')
+    
     trainset=get_word_pairs(sent_tokens, WINDOW_SIZE)
 
     # Build Unigram Distribution**0.75
@@ -150,16 +151,18 @@ if __name__=='__main__':
             optimizer.step()
             total_loss += loss.item()
 
-        #-- Report loss after every epoch --#
-        with torch.no_grad():
-            print('Loss:', total_loss)
+    #-- Report loss after every epoch --#
+    with torch.no_grad():
+        print('Loss:', total_loss)
         
     # Sanity check:
     # print(model.embed.weight.data.numpy()[word2idx('un')])
         
     ebd_matrix = model.embed.weight.data.numpy()
-    matrix = {}
-    for word in vocab:
-        matrix[word] = ebd_matrix[word2idx(word)]
-        
+    print(ebd_matrix)
+
+    #matrix = {}
+    #for word in vocab:
+    #    matrix[word] = ebd_matrix[word2idx(word)]
+    
     # TODO: Save matrix to json!
