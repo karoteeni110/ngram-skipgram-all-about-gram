@@ -10,6 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from memory_profiler import profile
+import pickle
 
 # from collections import Counter
 
@@ -27,7 +28,7 @@ toy_corpus = [
     'You can also choose your own topic and suggest a project or choose and existing topic and suggest your own project based on the topic'
 ]
 #CORP = toy_corpus
-CORP = open('newtxt.txt', 'r').readlines()[:1000]
+CORP = open('newtxt.txt', 'r').readlines()[:100]
 
 #-- model --#
 class SGnoNS(nn.Module): #Skipgram (without negative sampling for now)
@@ -130,7 +131,7 @@ if __name__=='__main__':
         total_loss = 0  
         shuffle(trainset)
 
-        for center,context in trainset:
+        for i in range(0,int(len(trainset)/BATCH_SIZE)):
             log_probs = model(word2idx(center).view(1,-1))   
             # print('input', get_onehot(center))
             # print('logprob',log_probs, log_probs.shape)
@@ -143,9 +144,9 @@ if __name__=='__main__':
             optimizer.step()
             total_loss += loss.item()
 
-    #-- Report loss after every epoch --#
+        #-- Report loss after every epoch --#
         with torch.no_grad():
-            print('EPOCH', epoch,'Loss:', total_loss)
+            print('Epoch', epoch,'Loss:', total_loss)
         
     # Sanity check:
     # print(model.embed.weight.data.numpy()[word2idx('un')])
@@ -155,5 +156,4 @@ if __name__=='__main__':
         matrix[word] = ebd_matrix[word2idx(word)]
 
     #-- Save the embedding --#
-    torch.save(matrix, 'SGbutnoNG.vec')
-
+    pickle.dump((matrix),open('myemb.pkl','wb'))
