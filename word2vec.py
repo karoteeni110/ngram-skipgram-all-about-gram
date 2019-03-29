@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import gensim
+from memory_profiler import profile
 
 # from collections import Counter
 
@@ -27,7 +27,7 @@ toy_corpus = [
     'You can also choose your own topic and suggest a project or choose and existing topic and suggest your own project based on the topic'
 ]
 #CORP = toy_corpus
-CORP = open('newtxt.txt', 'r').readlines()[:100]
+CORP = open('newtxt.txt', 'r').readlines()[:1000]
 
 #-- model --#
 class SGnoNS(nn.Module): #Skipgram (without negative sampling for now)
@@ -136,7 +136,7 @@ if __name__=='__main__':
             # print('logprob',log_probs, log_probs.shape)
             # exit(0)
             
-            loss = loss_function(log_probs, word2idx(context).view(1))
+            loss = loss_function(log_probs, word2idx(context))
     
             optimizer.zero_grad()
             loss.backward()
@@ -149,11 +149,11 @@ if __name__=='__main__':
         
     # Sanity check:
     # print(model.embed.weight.data.numpy()[word2idx('un')])
-    #matrix = {}
-    #ebd_matrix = model.embed.weight.data.numpy()
-    #for word in vocab:
-    #    matrix[word] = ebd_matrix[word2idx(word)]
-    
-    #-- Save the model --#
-    torch.save(model.embed.weight.data.numpy(), 'SGbutnoNG.vec')
+    matrix = {}
+    ebd_matrix = model.embed.weight.data.numpy()
+    for word in vocab:
+        matrix[word] = ebd_matrix[word2idx(word)]
+
+    #-- Save the embedding --#
+    torch.save(matrix, 'SGbutnoNG.vec')
 
