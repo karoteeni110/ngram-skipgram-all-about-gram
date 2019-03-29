@@ -9,6 +9,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+import gensim
 
 # from collections import Counter
 
@@ -25,25 +26,24 @@ toy_corpus = [
     'We will provide datasets for each practical project',
     'You can also choose your own topic and suggest a project or choose and existing topic and suggest your own project based on the topic'
 ]
-# CORP = toy_corpus
-CORP = open('newtxt.txt', 'r').readlines()
+#CORP = toy_corpus
+CORP = open('newtxt.txt', 'r').readlines()[:100]
 
 #-- model --#
-class SGNS(nn.Module): #Skipgram (without negative sampling for now)
+class SGnoNS(nn.Module): #Skipgram (without negative sampling for now)
     def __init__(self, embedding_dim, vocab_size):
-        super(SGNS, self).__init__()
+        super(SGnoNS, self).__init__()
         self.embedding_dim = embedding_dim
         self.vocab_size = vocab_size 
         
         self.embed = nn.Embedding(vocab_size, embedding_dim)
-        self.linear = nn.Linear(vocab_size * embedding_dim, vocab_size) # Is this input size correct?
+        self.linear = nn.Linear(embedding_dim, vocab_size) # Is this size correct?
 
     def forward(self, x):
         out = self.embed(x)
         embed_vec = out.view(1,-1) # [vocab_size, embedding_dim].view(1,-1); NOT [1, embedding_dim]!
         log_probs = F.log_softmax(self.linear(embed_vec), dim=1)
         return log_probs
-    
 
 #-- auxilary functions --#
 def seq_and_vocab(corpus): 
@@ -67,16 +67,11 @@ def idx2word(idx):
     word = i2w[idx]
     return word
 
-def get_onehot(word):
-    """
-    # Tokenization
-    corpus_tokens = []
-    tokenizer = RegexpTokenizer(r'\w+')
-    for sentence in corpus:
-        sentence_tokens = tokenizer.tokenize(sentence)
-        corpus_tokens.append(sentence_tokens)
-    
-    """
+def get_onehot(word): 
+    '''
+    USELESS!
+    We can use the index number to index the embedding
+    '''
     onehot = torch.zeros(len(vocab), dtype=torch.long)
     onehot[word2idx(word)] = 1
     return onehot
@@ -125,26 +120,23 @@ if __name__=='__main__':
     
     #-- initialization --#
     print('Initialzing..')
-    model = SGNS(EMBEDDING_DIM, len(vocab))
+    model = SGnoNS(EMBEDDING_DIM, len(vocab))
     loss_function = nn.NLLLoss()
     optimizer = optim.SGD(model.parameters(), lr = LEARNING_RATE)
 
     #-- training --#
     print('Training..')
     for epoch in range(N_EPOCHS):
-        print('EPOCH', epoch)
         total_loss = 0  
         shuffle(trainset)
 
         for center,context in trainset:
-            log_probs = model(get_onehot(center))
-            
-            # print(center)
+            log_probs = model(word2idx(center).view(1,-1))   
             # print('input', get_onehot(center))
             # print('logprob',log_probs, log_probs.shape)
             # exit(0)
             
-            loss = loss_function(log_probs, word2idx(context))
+            loss = loss_function(log_probs, word2idx(context).view(1))
     
             optimizer.zero_grad()
             loss.backward()
@@ -152,17 +144,16 @@ if __name__=='__main__':
             total_loss += loss.item()
 
     #-- Report loss after every epoch --#
-    with torch.no_grad():
-        print('Loss:', total_loss)
+        with torch.no_grad():
+            print('EPOCH', epoch,'Loss:', total_loss)
         
     # Sanity check:
     # print(model.embed.weight.data.numpy()[word2idx('un')])
-        
-    ebd_matrix = model.embed.weight.data.numpy()
-    print(ebd_matrix)
-
     #matrix = {}
+    #ebd_matrix = model.embed.weight.data.numpy()
     #for word in vocab:
     #    matrix[word] = ebd_matrix[word2idx(word)]
     
-    # TODO: Save matrix to json!
+    #-- Save the model --#
+    torch.save(model.embed.weight.data.numpy(), 'SGbutnoNG.vec')
+
