@@ -20,6 +20,7 @@ EMBEDDING_DIM = 10
 # N_NEGS = 10
 N_EPOCHS = 2
 LEARNING_RATE = 0.01
+BATCH_SIZE = 30
 
 toy_corpus = [
     'You may work either independently or in a group',
@@ -42,7 +43,7 @@ class SGnoNS(nn.Module): #Skipgram (without negative sampling for now)
 
     def forward(self, x):
         out = self.embed(x)
-        embed_vec = out.view(1,-1) # [vocab_size, embedding_dim].view(1,-1); NOT [1, embedding_dim]!
+        embed_vec = out.view(BATCH_SIZE,-1) # [vocab_size, embedding_dim].view(1,-1); NOT [1, embedding_dim]!
         log_probs = F.log_softmax(self.linear(embed_vec), dim=1)
         return log_probs
 
@@ -131,13 +132,17 @@ if __name__=='__main__':
         total_loss = 0  
         shuffle(trainset)
 
+        #for center,context in trainset:
         for i in range(0,int(len(trainset)/BATCH_SIZE)):
-            log_probs = model(word2idx(center).view(1,-1))   
-            # print('input', get_onehot(center))
-            # print('logprob',log_probs, log_probs.shape)
-            # exit(0)
+            minibatch = trainset[i*BATCH_SIZE:(i+1)*BATCH_SIZE]
+            mb_center = torch.cat([word2idx(center)
+                        for center, context in minibatch], dim=0)
+            # log_probs = model(word2idx(center).view(1,-1))   
+            log_probs = model(mb_center)
+            mb_context = torch.cat([word2idx(context)
+                        for center, context in minibatch], dim=0)
             
-            loss = loss_function(log_probs, word2idx(context))
+            loss = loss_function(log_probs, mb_context)
     
             optimizer.zero_grad()
             loss.backward()
@@ -156,4 +161,4 @@ if __name__=='__main__':
         matrix[word] = ebd_matrix[word2idx(word)]
 
     #-- Save the embedding --#
-    pickle.dump((matrix),open('myemb.pkl','wb'))
+    pickle.dump((matrix,w2d),open('myemb.pkl','wb'))
