@@ -147,17 +147,17 @@ if __name__=='__main__':
             optimizer.step()
             total_loss += loss.item()
 
-        #-- Report loss after every epoch --#
+        #-- Report loss & save embed after every epoch --#
         with torch.no_grad():
             print('Epoch', epoch,'Loss:', total_loss)
+            
+            matrix = {}
+            ebd_matrix = model.embed.weight.data.numpy()
+            for word in vocab:
+                matrix[word] = ebd_matrix[word2idx(word)]
             pickle.dump((matrix,w2d),open('myemb.EP%d.pkl' % epoch,'wb'))
         
     # Sanity check:
     # print(model.embed.weight.data.numpy()[word2idx('un')])
-    matrix = {}
-    ebd_matrix = model.embed.weight.data.numpy()
-    for word in vocab:
-        matrix[word] = ebd_matrix[word2idx(word)]
 
-    #-- Save the embedding --#
     
