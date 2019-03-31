@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from nltk.tag.util import untag
 
 def onesentperline(fpath):
     ''' 
@@ -42,7 +43,29 @@ def seq_and_vocab(corpus, n):
     # print(sent_tokens[:5], len(vocab)) # 5gram
     # [['\ufeffpete', 'r'], ['neube', 'r'], [','], ['meldö', 'rp-bȫ', 'ker'], ['1']] 12544
 
-if __name__ == "__main__":
+def read_tagged_sents(path):       
+    tagged_sents = []
+    try:
+        # When we open a file with "with", the file is always cleanly closed as well
+        with open(path, "r", encoding="UTF-8") as gs_file:
+            line = gs_file.readline()
+            while line != "":
+                tagged_sents.append([[w.lower(), t] for (w, t) in
+                             [tuple(wt.split("/")) for wt in line.split()]])
+                line = gs_file.readline()
+    except OSError:
+        print("Error reading file.")
+        sys.exit()
+    return tagged_sents
+
+def UDuntagged(path):
+    newfile = open('UDuntagged.txt','w')
+    sents = [untag(sent) for sent in read_tagged_sents(path)]
+    for sent in sents:
+        for word in sent:
+            newfile.write(word+' ')
+        newfile.write('\n')
     
-    onesentperline('newtxt.txt')
+if __name__ == "__main__":
+    UDuntagged('fi-ud-train.pos-tagged.txt')
 
