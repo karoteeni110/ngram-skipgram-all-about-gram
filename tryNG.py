@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-    LEAVE MESSAGE HERE
+    A toy script. Trying to implement NG here.
+    I'm not using another branch!!
 """
 from random import choice, random, shuffle
 
 import numpy as np
 import torch
+from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -20,7 +22,7 @@ EMBEDDING_DIM = 10
 # N_NEGS = 10
 N_EPOCHS = 2
 LEARNING_RATE = 0.01
-BATCH_SIZE = 1000
+BATCH_SIZE = 300
 
 toy_corpus = [
     'You may work either independently or in a group',
@@ -29,25 +31,38 @@ toy_corpus = [
     'You can also choose your own topic and suggest a project or choose and existing topic and suggest your own project based on the topic'
 ]
 #CORP = toy_corpus
-CORP = open('UDuntagged.txt', 'r').readlines()
+CORP = open('newtxt.txt', 'r').readlines()
 # print(len(CORP))
 # 18619
 
 #-- model --#
-class SGnoNS(nn.Module): #Skipgram (without negative sampling for now)
-    def __init__(self, embedding_dim, vocab_size):
-        super(SGnoNS, self).__init__()
+class SGNS(nn.Module): #Skipgram (without negative sampling for now)
+    def __init__(self, vocab_size, embedding_dim):
+        """Initialize model parameters. """
+        super(SGNS, self).__init__()
+        self.vocab_size = vocab_size
         self.embedding_dim = embedding_dim
-        self.vocab_size = vocab_size 
-        
-        self.embed = nn.Embedding(vocab_size, embedding_dim)
-        self.linear = nn.Linear(embedding_dim, vocab_size) # Is this size correct?
+        self.u_embeddings = nn.Embedding(vocab_size, embedding_dim, sparse=True)
+        self.v_embeddings = nn.Embedding(vocab_size, embedding_dim, sparse=True)
 
-    def forward(self, x):
-        out = self.embed(x)
-        embed_vec = out.view(BATCH_SIZE,-1) # [vocab_size, embedding_dim].view(1,-1); NOT [1, embedding_dim]!
-        log_probs = F.log_softmax(self.linear(embed_vec), dim=1)
-        return log_probs
+    def forward(self, center, context, neg_v):
+        """All input of this method is a list of word id. 
+        Args: center: list of center word ids for positive word pairs. 
+        context: list of neibor word ids for positive word pairs. 
+        neg_v: list of neibor word ids for negative word pairs. """
+        losses = []
+        emb_u = self.u_embeddings(Variable(center))
+        emb_v = self.v_embeddings(Variable(context))
+        score = torch.mul(emb_u, emb_v).squeeze()
+        score = torch.sum(score, dim=1)
+        score = F.logsigmoid(score)
+        losses.append(sum(score))
+        neg_emb_v = self.v_embeddings(Variable(neg_v))
+        neg_score = torch.bmm(neg_emb_v, emb_u.unsqueeze(2)).squeeze()
+        neg_score = torch.sum(neg_score, dim=1)
+        neg_score = F.log_softmax(-1 * neg_score)
+        losses.append(sum(neg_score))
+        return -1 * sum(losses)
 
 #-- auxilary functions --#
 def seq_and_vocab(corpus): 
@@ -71,10 +86,16 @@ def idx2word(idx):
     word = i2w[idx]
     return word
 
-def get_word_pairs(sent_tok, window_size): 
+def get_onehot(word): 
     '''
-    window_size: | pos(farthest context word) - pos(center) | 
+    USELESS!
+    We can use the index number to index the embedding
     '''
+    onehot = torch.zeros(len(vocab), dtype=torch.long)
+    onehot[word2idx(word)] = 1
+    return onehot
+
+def get_word_pairs(sent_tok, window_size): # window_size: | pos(farthest context word) - pos(center) | 
     word_pairs = []
     for sentence in sent_tok:
         for center_pos in range(len(sentence)):
@@ -103,9 +124,10 @@ if __name__=='__main__':
     w2d = {w: idx for (idx, w) in enumerate(vocab)}
     i2w = {idx:w for (idx, w) in enumerate(vocab)}
     print('Reading...')
-    
     trainset=get_word_pairs(sent_tokens, WINDOW_SIZE)
 
+    # Generate negative words
+    neg_v = choice(sample_table, size=(len(pos_word_pair),count))
     # Build Unigram Distribution**0.75
     # TBD
     
@@ -118,7 +140,7 @@ if __name__=='__main__':
     
     #-- initialization --#
     print('Initialzing..')
-    model = SGnoNS(EMBEDDING_DIM, len(vocab))
+    model = SGNS(len(vocab), EMBEDDING_DIM)
     loss_function = nn.NLLLoss()
     optimizer = optim.SGD(model.parameters(), lr = LEARNING_RATE)
 
@@ -150,7 +172,6 @@ if __name__=='__main__':
         #-- Report loss after every epoch --#
         with torch.no_grad():
             print('Epoch', epoch,'Loss:', total_loss)
-            pickle.dump((matrix,w2d),open('myemb.EP%d.pkl' % epoch,'wb'))
         
     # Sanity check:
     # print(model.embed.weight.data.numpy()[word2idx('un')])
@@ -160,4 +181,4 @@ if __name__=='__main__':
         matrix[word] = ebd_matrix[word2idx(word)]
 
     #-- Save the embedding --#
-    
+    pickle.dump((matrix,w2d),open('myemb.pkl','wb'))
