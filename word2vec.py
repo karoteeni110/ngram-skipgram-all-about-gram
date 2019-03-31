@@ -18,9 +18,9 @@ import pickle
 WINDOW_SIZE = 2
 EMBEDDING_DIM = 10
 # N_NEGS = 10
-N_EPOCHS = 2
+N_EPOCHS = 10
 LEARNING_RATE = 0.01
-BATCH_SIZE = 1000
+BATCH_SIZE = 3000
 
 toy_corpus = [
     'You may work either independently or in a group',
@@ -29,7 +29,7 @@ toy_corpus = [
     'You can also choose your own topic and suggest a project or choose and existing topic and suggest your own project based on the topic'
 ]
 #CORP = toy_corpus
-CORP = open('UDuntagged.txt', 'r').readlines()
+CORP = open('newtxt.txt', 'r').readlines()
 # print(len(CORP))
 # 18619
 
@@ -150,7 +150,7 @@ if __name__=='__main__':
         #-- Report loss & save embed after every epoch --#
         with torch.no_grad():
             print('Epoch', epoch,'Loss:', total_loss)
-            
+
             matrix = {}
             ebd_matrix = model.embed.weight.data.numpy()
             for word in vocab:
