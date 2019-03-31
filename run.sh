@@ -11,4 +11,4 @@
 module purge
 module load python-env/intelpython3.6-2018.3 gcc/5.4.0 cuda/9.0 cudnn/7.1-cuda9
 
-python3 original.py
+python3 word2vec.py
