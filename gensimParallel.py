@@ -36,7 +36,7 @@ def read_input(infile):
             yield simple_preprocess(line)
 
 CORP = list(read_input('newtxt.txt')) 
-# shuffle(CORP)
+shuffle(CORP)
 # print(CORP[:2])
 # exit(0)
 
