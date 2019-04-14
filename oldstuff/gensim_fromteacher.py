@@ -1,7 +1,7 @@
 from gensim.models import Word2Vec
 from random import randint, shuffle
 
-EPOCHS=10
+EPOCHS=100
 
 data = open("newtxt.txt").read().split('\n')
 data = [line.strip(' ').split(' ') for line in data]
