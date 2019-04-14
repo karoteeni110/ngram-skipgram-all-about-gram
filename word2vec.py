@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from memory_profiler import profile
+#from memory_profiler import profile
 import pickle
 
 # from collections import Counter
@@ -29,7 +29,7 @@ toy_corpus = [
     'You can also choose your own topic and suggest a project or choose and existing topic and suggest your own project based on the topic'
 ]
 #CORP = toy_corpus
-CORP = open('newtxt.txt', 'r').readlines()
+CORP = open('UD-FI-untagged.txt', 'r').readlines()
 # print(len(CORP))
 # 18619
 
@@ -155,7 +155,7 @@ if __name__=='__main__':
             ebd_matrix = model.embed.weight.data.numpy()
             for word in vocab:
                 matrix[word] = ebd_matrix[word2idx(word)]
-            pickle.dump((matrix,w2d),open('myemb.EP%d.pkl' % epoch,'wb'))
+            pickle.dump(matrix,open('UD-FI-Pytorch-emb.EP%d.pkl' % epoch,'wb'))
         
     # Sanity check:
     # print(model.embed.weight.data.numpy()[word2idx('un')])
