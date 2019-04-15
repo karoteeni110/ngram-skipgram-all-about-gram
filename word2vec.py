@@ -112,10 +112,6 @@ if __name__=='__main__':
     # Negative Sampling
     # TBD
     
-    # Check: 
-    # get_onehot('also')
-    # exit(0)
-    
     #-- initialization --#
     print('Initialzing..')
     model = SGnoNS(EMBEDDING_DIM, len(vocab))
