@@ -5,7 +5,7 @@ The work is based on the paper:
 
 Bojanowski et al. ["Enriching Word Vectors with Subword Information."](http://aclweb.org/anthology/Q17-1010) TACL 2017.
 
-#### Beneficial tutorials
+## Beneficial tutorials
 
 [Word2vec with Pytorch - Xiaofei's Blog - Xiaofei Sun](https://adoni.github.io/2017/11/08/word2vec-pytorch/)
 
